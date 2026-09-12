@@ -1,0 +1,676 @@
+From edca200e24aaaab01a113493e1d61f4a22de07df Mon Sep 17 00:00:00 2001
+From: UdonSari <udonsari0101@users.noreply.github.com>
+Date: Wed, 9 Sep 2026 05:32:12 +0900
+Subject: [PATCH] qualcommax: add LG GAPD-7500 support
+
+---
+ .../uboot-envtools/files/qualcommax_ipq60xx   |   1 +
+ package/firmware/ipq-wifi/Makefile            |   8 +
+ .../ipq-wifi/files/board-lg_gapd-7500.ipq6018 | Bin 0 -> 65640 bytes
+ .../qualcommax/dts/ipq6000-lg-gapd-7500.dts   | 358 ++++++++++++++++++
+ target/linux/qualcommax/image/ipq60xx.mk      |  14 +
+ .../ipq60xx/base-files/etc/board.d/01_leds    |   8 +
+ .../ipq60xx/base-files/etc/board.d/02_network |   3 +-
+ .../etc/hotplug.d/firmware/11-ath11k-caldata  |   3 +
+ .../etc/hotplug.d/ieee80211/11_fix_wifi_mac   |  16 +
+ .../base-files/lib/upgrade/platform.sh        |  11 +
+ 10 files changed, 421 insertions(+), 1 deletion(-)
+ create mode 100644 package/firmware/ipq-wifi/files/board-lg_gapd-7500.ipq6018
+ create mode 100644 target/linux/qualcommax/dts/ipq6000-lg-gapd-7500.dts
+ create mode 100644 target/linux/qualcommax/ipq60xx/base-files/etc/hotplug.d/ieee80211/11_fix_wifi_mac
+
+diff --git a/package/boot/uboot-tools/uboot-envtools/files/qualcommax_ipq60xx b/package/boot/uboot-tools/uboot-envtools/files/qualcommax_ipq60xx
+index a191339..2e5edad 100644
+--- a/package/boot/uboot-tools/uboot-envtools/files/qualcommax_ipq60xx
++++ b/package/boot/uboot-tools/uboot-envtools/files/qualcommax_ipq60xx
+@@ -37,6 +37,7 @@ netgear,rbs350|\
+ netgear,wax214|\
+ netgear,wax610|\
+ netgear,wax610y|\
++lg,gapd-7500|\
+ tplink,eap610-outdoor|\
+ tplink,eap623-outdoor-hd-v1|\
+ tplink,eap620-hd-v2|\
+diff --git a/package/firmware/ipq-wifi/Makefile b/package/firmware/ipq-wifi/Makefile
+index 17c49bd..ee8de5b 100644
+--- a/package/firmware/ipq-wifi/Makefile
++++ b/package/firmware/ipq-wifi/Makefile
+@@ -10,9 +10,15 @@ PKG_SOURCE_DATE:=2026-08-26
+ PKG_SOURCE_VERSION:=c9c7cd8142ac7655d6ff88af9f91200a472de01e
+ PKG_MIRROR_HASH:=29bb3bd7aa2988cd4998a05e41d39a29f8776fc2f28685f95330932245555b34
+ PKG_FLAGS:=nonshared
++PKG_FILE_DEPENDS:=$(wildcard ./files/*)
+ 
+ include $(INCLUDE_DIR)/package.mk
+ 
++define Build/Prepare
++	$(call Build/Prepare/Default)
++	$(CP) ./files/. $(PKG_BUILD_DIR)/
++endef
++
+ define Build/Compile
+ endef
+ 
+@@ -52,6 +58,7 @@ ALLWIFIBOARDS:= \
+ 	jdcloud_re-cs-02 \
+ 	jdcloud_re-ss-01 \
+ 	link_nn6000 \
++	lg_gapd-7500 \
+ 	linksys_homewrk \
+ 	linksys_mr5500 \
+ 	linksys_mr6350 \
+@@ -253,6 +260,7 @@ $(eval $(call generate-ipq-wifi-package,iodata_wn-dax3000gr,I-O DATA WN-DAX3000G
+ $(eval $(call generate-ipq-wifi-package,jdcloud_re-cs-02,JDCloud RE-CS-02))
+ $(eval $(call generate-ipq-wifi-package,jdcloud_re-ss-01,JDCloud RE-SS-01))
+ $(eval $(call generate-ipq-wifi-package,link_nn6000,Link NN6000))
++$(eval $(call generate-ipq-wifi-package,lg_gapd-7500,LG GAPD-7500))
+ $(eval $(call generate-ipq-wifi-package,linksys_homewrk,Linksys HomeWRK))
+ $(eval $(call generate-ipq-wifi-package,linksys_mr5500,Linksys MR5500))
+ $(eval $(call generate-ipq-wifi-package,linksys_mr6350,Linksys MR6350))
+diff --git a/package/firmware/ipq-wifi/files/board-lg_gapd-7500.ipq6018 b/package/firmware/ipq-wifi/files/board-lg_gapd-7500.ipq6018
+new file mode 100644
+index 0000000000000000000000000000000000000000..7f888778b264f1c7f3672d79061447efdf70e08a
+GIT binary patch
+literal 65640
+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
+
+literal 0
+HcmV?d00001
+
+diff --git a/target/linux/qualcommax/dts/ipq6000-lg-gapd-7500.dts b/target/linux/qualcommax/dts/ipq6000-lg-gapd-7500.dts
+new file mode 100644
+index 0000000..9291686
+--- /dev/null
++++ b/target/linux/qualcommax/dts/ipq6000-lg-gapd-7500.dts
+@@ -0,0 +1,358 @@
++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
++/* Copyright (c) 2025, Mohammed baalawi <baalwy2009@gmail.com> */
++
++/dts-v1/;
++
++#include "ipq6018-512m.dtsi"
++#include "ipq6018-ess.dtsi"
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/leds/common.h>
++
++/ {
++	model = "LG-GAPD-7500";
++	compatible = "lg,gapd-7500", "qcom,ipq6018";
++
++	aliases {
++		serial0 = &blsp1_uart3;
++		label-mac-device = &swport4;
++		led-boot = &led_power;
++		led-failsafe = &led_power;
++		led-running = &led_power;
++		led-upgrade = &led_power;
++		ethernet0 = &swport2;
++		ethernet1 = &swport3;
++		ethernet2 = &swport4;
++	};
++
++	chosen {
++		stdout-path = "serial0:115200n8";
++		bootargs-append = " root=/dev/ubiblock0_1 swiotlb=1";
++	};
++
++	keys {
++		compatible = "gpio-keys";
++
++		reset {
++			label = "reset";
++			gpios = <&tlmm 60 GPIO_ACTIVE_LOW>;
++			linux,code = <KEY_RESTART>;
++		};
++
++		wps {
++			label = "wps";
++			gpios = <&tlmm 9 GPIO_ACTIVE_LOW>;
++			linux,code = <KEY_WPS_BUTTON>;
++		};
++	};
++
++	leds {
++		compatible = "gpio-leds";
++
++		led_power: power {
++			color = <LED_COLOR_ID_GREEN>;
++			function = LED_FUNCTION_POWER;
++			gpios = <&tlmm 57 GPIO_ACTIVE_LOW>;
++			default-state = "on";
++		};
++
++		wlan2g {
++			color = <LED_COLOR_ID_GREEN>;
++			function = LED_FUNCTION_WLAN_2GHZ;
++			gpios = <&tlmm 37 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "phy1tpt";
++		};
++
++		wlan5g {
++			color = <LED_COLOR_ID_GREEN>;
++			function = LED_FUNCTION_WLAN_5GHZ;
++			gpios = <&tlmm 35 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "phy0tpt";
++		};
++	};
++
++	reg_usb_vbus: regulator-usb-vbus {
++		compatible = "regulator-fixed";
++		regulator-name = "usb_vbus";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		gpios = <&tlmm 59 GPIO_ACTIVE_HIGH>;
++		enable-active-high;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++};
++
++&tlmm {
++	gpio-reserved-ranges = <20 1>;
++
++	mdio_pins: mdio-pins {
++		mdc {
++			pins = "gpio64";
++			function = "mdc";
++			drive-strength = <8>;
++			bias-pull-up;
++		};
++
++		mdio {
++			pins = "gpio65";
++			function = "mdio";
++			drive-strength = <8>;
++			bias-pull-up;
++		};
++	};
++
++	i2c_1_pins: i2c-1-state {
++		pins = "gpio42", "gpio43";
++		function = "blsp2_i2c";
++		drive-strength = <8>;
++	};
++
++	spi_0_pins: spi-0-state {
++		pins = "gpio38", "gpio39", "gpio40", "gpio41";
++		function = "blsp0_spi";
++		drive-strength = <8>;
++		bias-pull-down;
++	};
++};
++
++&mdio {
++	status = "okay";
++	pinctrl-0 = <&mdio_pins>;
++	pinctrl-names = "default";
++	reset-gpios = <&tlmm 75 GPIO_ACTIVE_LOW>;
++	reset-delay-us = <10000>;
++	reset-post-delay-us = <50000>;
++
++	ethernet-phy-package@0 {
++		compatible = "qcom,qca8075-package";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		reg = <0>;
++
++		qcom,package-mode = "psgmii";
++
++		qca8075_1: ethernet-phy@1 {
++			compatible = "ethernet-phy-ieee802.3-c22";
++			reg = <1>;
++
++			leds {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				led@0 {
++					reg = <0>;
++					color = <LED_COLOR_ID_ORANGE>;
++					function = LED_FUNCTION_LAN;
++					default-state = "keep";
++				};
++
++				led@1 {
++					reg = <1>;
++					color = <LED_COLOR_ID_GREEN>;
++					function = LED_FUNCTION_LAN;
++					default-state = "keep";
++				};
++			};
++		};
++
++		qca8075_2: ethernet-phy@2 {
++			compatible = "ethernet-phy-ieee802.3-c22";
++			reg = <2>;
++
++			leds {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				led@0 {
++					reg = <0>;
++					color = <LED_COLOR_ID_ORANGE>;
++					function = LED_FUNCTION_LAN;
++					default-state = "keep";
++				};
++
++				led@1 {
++					reg = <1>;
++					color = <LED_COLOR_ID_GREEN>;
++					function = LED_FUNCTION_LAN;
++					default-state = "keep";
++				};
++			};
++		};
++
++		qca8075_3: ethernet-phy@3 {
++			compatible = "ethernet-phy-ieee802.3-c22";
++			reg = <3>;
++
++			leds {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				led@0 {
++					reg = <0>;
++					color = <LED_COLOR_ID_ORANGE>;
++					function = LED_FUNCTION_WAN;
++					default-state = "keep";
++				};
++
++				led@1 {
++					reg = <1>;
++					color = <LED_COLOR_ID_GREEN>;
++					function = LED_FUNCTION_WAN;
++					default-state = "keep";
++				};
++			};
++		};
++	};
++};
++
++&uniphy0 {
++	status = "okay";
++};
++
++&switch {
++	status = "okay";
++
++	ports {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++			ethernet = <&edma>;
++			phy-mode = "internal";
++
++			fixed-link {
++				speed = <1000>;
++				full-duplex;
++			};
++		};
++
++		swport2: port@2 {
++			reg = <2>;
++			label = "lan1";
++			phy-handle = <&qca8075_1>;
++			phy-mode = "psgmii";
++			pcs-handle = <&uniphy0 1>;
++		};
++
++		swport3: port@3 {
++			reg = <3>;
++			label = "lan2";
++			phy-handle = <&qca8075_2>;
++			phy-mode = "psgmii";
++			pcs-handle = <&uniphy0 2>;
++		};
++
++		swport4: port@4 {
++			reg = <4>;
++			label = "wan";
++			phy-handle = <&qca8075_3>;
++			phy-mode = "psgmii";
++			pcs-handle = <&uniphy0 3>;
++		};
++	};
++};
++
++&edma {
++	status = "okay";
++};
++
++&blsp1_i2c3 {
++	status = "okay";
++	pinctrl-0 = <&i2c_1_pins>;
++	pinctrl-names = "default";
++};
++
++&blsp1_spi1 {
++	status = "okay";
++	pinctrl-0 = <&spi_0_pins>;
++	pinctrl-names = "default";
++};
++
++&blsp1_uart3 {
++	status = "okay";
++	pinctrl-0 = <&serial_3_pins>;
++	pinctrl-names = "default";
++};
++
++&qpic_bam {
++	status = "okay";
++};
++
++&qpic_nand {
++	status = "okay";
++
++	nand@0 {
++		reg = <0>;
++		nand-ecc-strength = <4>;
++		nand-ecc-step-size = <512>;
++		nand-bus-width = <8>;
++
++		partitions {
++			compatible = "qcom,smem-part";
++		};
++	};
++};
++
++&qusb_phy_0 {
++	status = "okay";
++	vdd-supply = <&reg_usb_vbus>;
++};
++
++&qusb_phy_1 {
++	status = "okay";
++};
++
++&ssphy_0 {
++	status = "okay";
++};
++
++&usb2 {
++	status = "okay";
++};
++
++&usb3 {
++	status = "okay";
++	vbus-supply = <&reg_usb_vbus>;
++};
++
++&wifi {
++	status = "okay";
++	qcom,ath11k-fw-memory-mode = <1>;
++	qcom,ath11k-calibration-variant = "LG-GAPD-7500";
++};
++
++&cpu_opp_table {
++	opp-864000000 {
++		opp-supported-hw = <0xf>;
++	};
++
++	opp-1056000000 {
++		opp-supported-hw = <0xf>;
++	};
++
++	opp-1200000000 {
++		opp-supported-hw = <0xf>;
++	};
++
++	opp-1320000000 {
++		opp-supported-hw = <0xf>;
++	};
++
++	opp-1440000000 {
++		opp-supported-hw = <0xf>;
++	};
++
++	opp-1512000000 {
++		opp-supported-hw = <0xf>;
++	};
++
++	opp-1608000000 {
++		opp-supported-hw = <0x1>;
++	};
++
++	opp-1800000000 {
++		opp-supported-hw = <0x1>;
++	};
++};
+diff --git a/target/linux/qualcommax/image/ipq60xx.mk b/target/linux/qualcommax/image/ipq60xx.mk
+index cb881ff..98b1996 100644
+--- a/target/linux/qualcommax/image/ipq60xx.mk
++++ b/target/linux/qualcommax/image/ipq60xx.mk
+@@ -88,6 +88,20 @@ define Device/glinet_gl-axt1800
+ endef
+ TARGET_DEVICES += glinet_gl-axt1800
+ 
++define Device/lg_gapd-7500
++	$(call Device/FitImage)
++	$(call Device/UbiFit)
++	DEVICE_VENDOR := LG
++	DEVICE_MODEL := GAPD-7500
++	DEVICE_DTS := ipq6000-lg-gapd-7500
++	BLOCKSIZE := 128k
++	PAGESIZE := 2048
++	SOC := ipq6000
++	DEVICE_DTS_CONFIG := config@cp03-c1
++	DEVICE_PACKAGES := ipq-wifi-lg_gapd-7500 kmod-switch-rtl8367b
++endef
++TARGET_DEVICES += lg_gapd-7500
++
+ define Device/jdcloud_re-cs-02
+ 	$(call Device/FitImage)
+ 	DEVICE_VENDOR := JDCloud
+diff --git a/target/linux/qualcommax/ipq60xx/base-files/etc/board.d/01_leds b/target/linux/qualcommax/ipq60xx/base-files/etc/board.d/01_leds
+index 2f39503..6f0327f 100644
+--- a/target/linux/qualcommax/ipq60xx/base-files/etc/board.d/01_leds
++++ b/target/linux/qualcommax/ipq60xx/base-files/etc/board.d/01_leds
+@@ -40,6 +40,14 @@ netgear,wax610y)
+ 	ucidef_set_led_netdev "lan-port-link" "LAN-PORT-LINK" "green:lan-0" "lan" "link_10 link_100 link_1000 link_2500"
+ 	ucidef_set_led_netdev "lan-port-traffic" "LAN-PORT-TRAFFIC" "orange:lan-1" "lan" "tx rx link_10 link_100 link_1000 link_2500"
+ 	;;
++lg,gapd-7500)
++	ucidef_set_led_netdev "lan1-port-link" "LAN1-PORT-LINK" "90000.mdio-1:01:green:lan" "lan1" "link_10 link_100 link_1000"
++	ucidef_set_led_netdev "lan1-port-traffic" "LAN1-PORT-TRAFFIC" "90000.mdio-1:01:orange:lan" "lan1" "tx rx link_10 link_100 link_1000"
++	ucidef_set_led_netdev "lan2-port-link" "LAN2-PORT-LINK" "90000.mdio-1:02:green:lan" "lan2" "link_10 link_100 link_1000"
++	ucidef_set_led_netdev "lan2-port-traffic" "LAN2-PORT-TRAFFIC" "90000.mdio-1:02:orange:lan" "lan2" "tx rx link_10 link_100 link_1000"
++	ucidef_set_led_netdev "wan-port-link" "WAN-PORT-LINK" "90000.mdio-1:03:green:wan" "wan" "link_10 link_100 link_1000"
++	ucidef_set_led_netdev "wan-port-traffic" "WAN-PORT-TRAFFIC" "90000.mdio-1:03:orange:wan" "wan" "tx rx link_10 link_100 link_1000"
++	;;
+ esac
+ 
+ board_config_flush
+diff --git a/target/linux/qualcommax/ipq60xx/base-files/etc/board.d/02_network b/target/linux/qualcommax/ipq60xx/base-files/etc/board.d/02_network
+index 9674f4a..78b49bd 100644
+--- a/target/linux/qualcommax/ipq60xx/base-files/etc/board.d/02_network
++++ b/target/linux/qualcommax/ipq60xx/base-files/etc/board.d/02_network
+@@ -13,7 +13,8 @@ ipq60xx_setup_interfaces()
+ 	case "$board" in
+ 	8devices,mango-dvk|\
+ 	glinet,gl-axt1800|\
+-	link,nn6000-v1)
++	link,nn6000-v1|\
++	lg,gapd-7500)
+ 		ucidef_set_interfaces_lan_wan "lan1 lan2" "wan"
+ 		;;
+ 	alfa-network,ap120c-ax)
+diff --git a/target/linux/qualcommax/ipq60xx/base-files/etc/hotplug.d/firmware/11-ath11k-caldata b/target/linux/qualcommax/ipq60xx/base-files/etc/hotplug.d/firmware/11-ath11k-caldata
+index 1d002b1..9126632 100644
+--- a/target/linux/qualcommax/ipq60xx/base-files/etc/hotplug.d/firmware/11-ath11k-caldata
++++ b/target/linux/qualcommax/ipq60xx/base-files/etc/hotplug.d/firmware/11-ath11k-caldata
+@@ -34,6 +34,9 @@ case "$FIRMWARE" in
+ 	jdcloud,re-ss-01)
+ 		caldata_extract_mmc "0:ART" 0x1000 0x10000
+ 		;;
++	lg,gapd-7500)
++		caldata_extract "0:art" 0x1000 0x10000
++		;;
+ 	link,nn6000-v1|\
+ 	link,nn6000-v2)
+ 		caldata_extract_mmc "0:ART" 0x1000 0x10000
+diff --git a/target/linux/qualcommax/ipq60xx/base-files/etc/hotplug.d/ieee80211/11_fix_wifi_mac b/target/linux/qualcommax/ipq60xx/base-files/etc/hotplug.d/ieee80211/11_fix_wifi_mac
+new file mode 100644
+index 0000000..5944bee
+--- /dev/null
++++ b/target/linux/qualcommax/ipq60xx/base-files/etc/hotplug.d/ieee80211/11_fix_wifi_mac
+@@ -0,0 +1,16 @@
++[ "$ACTION" = "add" ] || exit 0
++
++PHYNBR=${DEVPATH##*/phy}
++
++[ -n "$PHYNBR" ] || exit 0
++
++. /lib/functions.sh
++. /lib/functions/system.sh
++
++case "$(board_name)" in
++lg,gapd-7500)
++	label_mac=$(get_mac_label)
++	[ "$PHYNBR" = "0" ] && macaddr_add "$label_mac" 1 > "/sys${DEVPATH}/macaddress"
++	[ "$PHYNBR" = "1" ] && macaddr_add "$label_mac" 2 > "/sys${DEVPATH}/macaddress"
++	;;
++esac
+diff --git a/target/linux/qualcommax/ipq60xx/base-files/lib/upgrade/platform.sh b/target/linux/qualcommax/ipq60xx/base-files/lib/upgrade/platform.sh
+index 3a4f90b..5637875 100644
+--- a/target/linux/qualcommax/ipq60xx/base-files/lib/upgrade/platform.sh
++++ b/target/linux/qualcommax/ipq60xx/base-files/lib/upgrade/platform.sh
+@@ -155,6 +155,13 @@ linksys_mr_pre_upgrade() {
+ }
+ 
+ platform_check_image() {
++	case "$(board_name)" in
++	lg,gapd-7500)
++		echo "GAPD-7500 sysupgrade disabled: A/B and recovery semantics are unverified." >&2
++		return 1
++		;;
++	esac
++
+ 	return 0;
+ }
+ 
+@@ -183,6 +190,10 @@ EOF
+ 
+ platform_do_upgrade() {
+ 	case "$(board_name)" in
++	lg,gapd-7500)
++		echo "GAPD-7500 sysupgrade refused: use the RAM-only initramfs workflow." >&2
++		return 1
++		;;
+ 	alfa-network,ap120c-ax)
+ 		CI_UBIPART="rootfs_1"
+ 		alfa_bootconfig_rootfs_rotate "0:BOOTCONFIG" "148"
+-- 
+2.34.1
+

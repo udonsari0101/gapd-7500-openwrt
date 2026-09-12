@@ -1,0 +1,41 @@
+Timestamp: 2026-09-08T01:50:00+09:00
+Purpose: pre-change duplicate-subnet routing baseline
+Sanitization: MAC addresses and interface GUIDs omitted
+
+COMMAND: Get-NetAdapter
+Wi-Fi       Status=Up  ifIndex=21
+Ethernet 12 Status=Up  ifIndex=81  Description=Realtek USB GbE Family Controller #2
+
+COMMAND: Get-NetIPConfiguration
+Wi-Fi       IPv4=192.168.219.105/24 DefaultGateway=192.168.219.1
+Ethernet 12 IPv4=192.168.219.100/24 DefaultGateway=<none>
+
+COMMAND: Get-NetRoute -AddressFamily IPv4
+0.0.0.0/0          NextHop=192.168.219.1 Interface=Wi-Fi
+192.168.219.0/24   NextHop=0.0.0.0       Interface=Wi-Fi
+192.168.219.0/24   NextHop=0.0.0.0       Interface=Ethernet 12
+192.168.219.1/32   <absent>
+Persistent routes  <none>
+
+COMMAND: Get-NetNeighbor -AddressFamily IPv4
+192.168.219.1 had separate neighbor entries on Wi-Fi and Ethernet 12.
+Link-layer addresses are intentionally redacted.
+
+COMMAND: route print -4
+Only Wi-Fi had a default route. Both interfaces had connected /24 routes.
+No /32 target route and no persistent route existed.
+
+COMMAND: Test-NetConnection 1.1.1.1 -Port 443
+TcpTestSucceeded=True InterfaceAlias=Wi-Fi SourceAddress=192.168.219.105
+
+COMMAND: Test-NetConnection 192.168.219.1 -Port 80
+TcpTestSucceeded=True InterfaceAlias=Wi-Fi SourceAddress=192.168.219.105
+
+COMMAND: HTTP GET http://192.168.219.1/
+Status=200 Title=U+network administrator (Korean UI; sanitized ASCII summary)
+
+COMMAND: source-bound SendARP 192.168.219.100 -> 192.168.219.1
+Succeeded=True ReturnCode=0 LinkLayerAddress=<redacted>
+
+RESULT: Baseline captured. No network setting was changed.
+

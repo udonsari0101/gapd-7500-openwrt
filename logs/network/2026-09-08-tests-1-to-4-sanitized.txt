@@ -1,0 +1,51 @@
+Date: 2026-09-08 (Asia/Seoul)
+Purpose: validate automatic GAPD-7500 host-route failover
+Sanitization: MAC addresses and interface GUID omitted
+
+TEST 1 - Wi-Fi only
+Result: PASS
+Ethernet status: NotPresent
+192.168.219.1/32 ActiveStore count: 0
+192.168.219.1/32 PersistentStore count: 0
+Internet 1.1.1.1:443: PASS via Wi-Fi, source 192.168.219.105
+Target 192.168.219.1:80: PASS via Wi-Fi, source 192.168.219.105
+HTTP title: U+network administrator (Korean Wi-Fi-router UI)
+Raw log: C:\ProgramData\GAPD-7500-Network\logs\20260908-022020-278-Test1-WifiOnly.log
+
+TEST 2 - Wi-Fi and Ethernet connected to GAPD-7500
+Result: PASS
+Ethernet status: Up
+Required address: 192.168.219.100/24 present
+Wired L2 probe: PASS
+192.168.219.1/32 ActiveStore count: 1, on-link, Ethernet, metric 1
+192.168.219.1/32 PersistentStore count: 0
+Internet 1.1.1.1:443: PASS via Wi-Fi, source 192.168.219.105
+Target 192.168.219.1:80: PASS via Ethernet, source 192.168.219.100
+HTTP title: LG U+ CHGW Web
+Raw log: C:\ProgramData\GAPD-7500-Network\logs\20260908-021242-408-Test2-BothConnected.log
+
+TEST 3 - Disconnect Ethernet while both were connected
+Result: PASS
+Watcher at 02:15:22: desired=WifiFallback adapter=Up addressOk=True l2=False route=False compliant=True
+Ethernet then became fully NotPresent.
+192.168.219.1/32 ActiveStore count: 0
+192.168.219.1/32 PersistentStore count: 0
+Internet 1.1.1.1:443: PASS via Wi-Fi, source 192.168.219.105
+Target 192.168.219.1:80: PASS via Wi-Fi, source 192.168.219.105
+HTTP title: U+network administrator (Korean Wi-Fi-router UI)
+Raw log: C:\ProgramData\GAPD-7500-Network\logs\20260908-022020-384-Test3-EthernetDisconnected.log
+
+TEST 4 - Reconnect Ethernet
+Result: PASS
+Watcher at 02:28:06: adapter=Disconnected, route=False
+Watcher at 02:28:10: adapter=Up but addressOk=False, route=False
+Watcher at 02:28:20: address and L2 ready; ActiveStore host route added
+Watcher at 02:28:22: desired=EthernetTargetActive route=True compliant=True
+192.168.219.1/32 ActiveStore count: 1, on-link, Ethernet, metric 1
+192.168.219.1/32 PersistentStore count: 0
+Internet 1.1.1.1:443: PASS via Wi-Fi, source 192.168.219.105
+Target 192.168.219.1:80: PASS via Ethernet, source 192.168.219.100
+HTTP title: LG U+ CHGW Web
+Raw log: C:\ProgramData\GAPD-7500-Network\logs\20260908-022843-920-Test4-EthernetReconnected.log
+
+Overall result: TESTS 1-4 PASS. A reboot-trigger execution test remains pending.

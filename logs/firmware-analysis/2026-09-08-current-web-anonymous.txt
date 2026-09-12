@@ -1,0 +1,20 @@
+GAPD-7500 anonymous web capture summary
+Captured=2026-09-08T03:40:11.3465666+09:00
+BaseUri=http://192.168.219.1/
+Authentication=none
+Method=GET only
+Cookies=not persisted or exported
+
+Method	Path	Status	ContentType	Bytes	SHA256
+GET	/	200	text/html	734	14544a27096518bfdba306895f69909cbc759d3eeb68aad1e32ab1f67d9b47b2
+GET	/web/intro.html	200	text/html	28099	c656a5d845ca1e6a0219000720413adaa60150fa416fc48873c599d9fb319a7f
+GET	/web/js/jquery_api.js	200	text/javascript	95786	540bc6dec1dd4b92ea4d3fb903f69eabf6d919afd48f4e312b163c28cff0f441
+GET	/web/js/aes.js	200	text/javascript	12193	61acd397508ab4829a7ed748fccd8264bb93219c5a9e7a091de1419aba6befbd
+GET	/web/js/common_util.js	200	text/javascript	30581	329325f888aefa61593f2813c1b02a08c165df52c4ce0cf46e01b3c8290cd154
+GET	/web/js/ntwk0.1_plugin.js	200	text/javascript	4974	45e9ef425b141b800f8cc6d186d4ab8a03633c9e5c2d43f3065bd4c213b25c50
+GET	/web/js/jsbn.js	200	text/javascript	15180	47cfb330b7bcb17d2de237dce4437a625ab2b7d577a08c6b8e30c4523fb8f96d
+GET	/web/js/prng4.js	200	text/javascript	1009	9f27554859db05d776233142664db7d65867d6b52e9ada830c7e2fe50df91718
+GET	/web/js/rng.js	200	text/javascript	2112	45af8770ce556fab644a0dc7e99a28031d6ec3c9fd5d3ffe87bb10c23edf602d
+GET	/web/js/rsa.js	200	text/javascript	2644	e35376a7e422bfacb8c2d2e2b797cee63ac6db16471f4348ae356db0f5294208
+GET	/web/js/web_top_menu.js	200	text/javascript	6010	003b60afa0fdd90d8f8e36654a54d3b8c9775a10c8589b0832beccaeb7f921bf
+GET	/web/js/common_ui.js	200	text/javascript	9505	7e96fe0e8083b329b0d67a21760dfe6e5461ed4395220f949a06bf92764b1c3d

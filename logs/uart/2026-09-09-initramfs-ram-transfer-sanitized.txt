@@ -1,0 +1,36 @@
+GAPD-7500 initramfs RAM transfer checkpoint
+Date: 2026-09-09 (Asia/Seoul)
+Target: owner-controlled actual router, stock 1.06.08
+
+Transfer gate
+- LAN2 PHY1 and the Windows USB NIC remained at 1 Gbit/s.
+- Wi-Fi remained the only Internet default route.
+- The target-only Ethernet /32 route and private ActiveStore neighbor passed.
+- A source-restricted ActiveStore UDP 69 firewall rule was added for the
+  transfer and removed immediately afterward.
+
+One-shot TFTP result
+- Requested name: gapd-initramfs.itb.
+- Load address: 0x44000000.
+- U-Boot reported 18,129,564 bytes transferred (0x114a29c).
+- U-Boot reported fileaddr=44000000 and filesize=114a29c.
+- The one-shot server reported exactly 18,129,564 bytes and SHA-256:
+  9ca834d6d2d520f8b03039be55fb5b8f1bf7d4f197992d931aec10637ac0e657
+- The server exited after that single transfer.
+
+RAM integrity
+- Live U-Boot has no `hash` command; the apparent SHA-256 capability from
+  earlier static evidence was not a callable command.
+- Live U-Boot also has no `iminfo` command.
+- Host CRC32 over the exact 18,129,564-byte file: 724a9e30.
+- U-Boot CRC32 over 0x44000000 length 0x114a29c: 724a9e30.
+- The complete transferred RAM range therefore matches the pinned host file
+  by byte count and CRC32, while the host/server file is pinned by SHA-256.
+
+Current safety boundary
+- Router remains at the actual IPQ6018# prompt.
+- The verified initramfs remains in volatile RAM at 0x44000000.
+- No UDP 69 listener, Ncat process, or transfer firewall rule remains.
+- netretry was restored and no saveenv was issued.
+- No bootm, MTD/UBI write, calibration write, or boot-selection change occurred.
+- The next irreversible-in-session action is RAM execution, not flash.

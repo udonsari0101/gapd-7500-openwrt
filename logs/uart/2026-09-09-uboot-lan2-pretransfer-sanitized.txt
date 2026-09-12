@@ -1,0 +1,40 @@
+GAPD-7500 U-Boot LAN2 pre-transfer checkpoint
+Date: 2026-09-09 (Asia/Seoul)
+Target: owner-controlled actual router, stock 1.06.08
+
+Physical link
+- LAN1 did not provide U-Boot carrier.
+- LAN2 brought U-Boot PHY1 up at 1 Gbit/s full duplex.
+- Windows Ethernet 12 simultaneously negotiated 1 Gbit/s.
+
+Host network
+- Link renegotiation removed the earlier temporary source address. The
+  fail-closed watcher correctly removed the target /32 route.
+- A private elevated helper restored 192.168.219.100/24 and the target /32 in
+  ActiveStore and recorded the original DHCP state for rollback.
+- Packet capture observed valid bidirectional ARP. Windows SendARP initially
+  returned error 67, so the learned U-Boot link-layer address was added as a
+  private, reversible ActiveStore neighbor. No address is published here.
+- Final watcher status: EthernetTargetActive, L2 return code 0, one correct
+  target /32, one Wi-Fi default route, and zero Ethernet default routes.
+
+Bounded U-Boot ping
+- A previously retrying ping was stopped with Ctrl+C.
+- netretry=no was applied in RAM only for one bounded ping.
+- The ping succeeded. Capture contained one echo request and one echo reply.
+- The prior netretry value was restored. No saveenv was issued.
+
+Transfer-server validation
+- Pinned image size: 18,129,564 bytes.
+- Pinned image SHA-256:
+  9ca834d6d2d520f8b03039be55fb5b8f1bf7d4f197992d931aec10637ac0e657
+- Requested TFTP name: gapd-initramfs.itb.
+- Validation-only mode passed for the image, wired address, /32 route, Ncat,
+  and UDP 69 availability.
+
+Current safety boundary
+- Router remains idle at the actual IPQ6018# prompt.
+- No UDP 69 listener and no Ncat process are running.
+- No tftpboot, image transfer, U-Boot hash, or bootm command was issued.
+- OpenWrt transferred bytes: 0.
+- Temporary Windows changes have a private rollback state and script.

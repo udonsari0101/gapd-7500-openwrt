@@ -1,0 +1,34 @@
+GAPD-7500 LibWrt initramfs boot checkpoint
+Date: 2026-09-09 (Asia/Seoul)
+Target: owner-controlled actual router
+
+Boot result
+- Pre-boot fileaddr, filesize, and whole-range CRC32 passed again.
+- bootm used the FIT config for the verified CP03-C1 target.
+- U-Boot verified kernel and DTB CRC32 plus SHA-1.
+- Linux 6.12.103 started on model LG-GAPD-7500.
+- LibWrt 25.12.2 reached procd init complete without a kernel panic.
+- rootfs_type is initramfs and / is a read-write tmpfs.
+- No stock rootfs or UBI volume is mounted.
+
+Wired management
+- The connected rear jack appears as LibWrt lan1 at 1 Gbit/s.
+- br-lan is 192.168.1.1/24.
+- A temporary host-only 192.168.1.100/24 address reaches LuCI with HTTP 200.
+- TCP 22 is reachable on the isolated Ethernet segment.
+- Wi-Fi remains the only Windows Internet default route.
+- The pre-boot static neighbor and stale 192.168.219.1/32 were removed.
+
+Wireless defect
+- ath11k firmware started but calibration loading failed.
+- The requested calibration file was absent and no wireless PHY appeared.
+- Actual OpenWrt /proc/mtd exposes mtd15 as lowercase 0:art.
+- The local patch requested uppercase 0:ART based on stock-Linux display names.
+- This case mismatch is the confirmed immediate caldata failure.
+
+Safety boundary
+- No MTD/UBI, calibration partition, boot selection, or saved environment was
+  written by the RAM boot or the read-only inventory.
+- Raw UART, link-layer addresses, and device-specific data remain private.
+- This LibWrt image is diagnostic evidence, not the requested official
+  OpenWrt result. An official OpenWrt port is the next work item.

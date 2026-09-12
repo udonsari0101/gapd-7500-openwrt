@@ -1,0 +1,33 @@
+GAPD-7500 U-Boot console and pre-upload checkpoint
+Date: 2026-09-09 (Asia/Seoul)
+Target: owner-controlled actual router, stock 1.06.08
+
+Verified transition
+- The stock `dwlee` reference uses `bootdelay_=1` as its U-Boot access marker.
+  The destructive `dwlee` script itself was not executed.
+- The marker was absent before the test, written with the stock environment
+  tool, and read back as `bootdelay_=1`.
+- A procd software reboot was used; no power cycle occurred.
+- One SPACE byte was transmitted only after the exact console-ready UART
+  signature. The actual `IPQ6018#` prompt was observed.
+- No other pre-prompt byte was transmitted.
+
+Rollback at U-Boot
+- `bootdelay_=1` was confirmed in U-Boot RAM, removed, and confirmed absent.
+- One `saveenv` completed with erase and write success, persisting the marker
+  removal before any temporary network value was set.
+- `ipaddr=192.168.219.1`, `serverip=192.168.219.100`, and
+  `netmask=255.255.255.0` were set and read back in RAM only.
+- No later `saveenv` was issued.
+
+Current pre-upload blocker
+- U-Boot `eth0` is present on IPQ MDIO0.
+- PHY0 through PHY4 reported Down during two ping attempts.
+- Windows reported Ethernet 12 Disconnected with zero link speed.
+- A different physical jack must be tested before TFTP.
+
+Safety boundary
+- The router is intentionally idle at the U-Boot prompt.
+- No `tftpboot`, OpenWrt image transfer, hash command, or `bootm` was issued.
+- OpenWrt transferred bytes: 0.
+- No firmware, MTD/UBI volume, calibration data, or boot selection was written.

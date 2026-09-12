@@ -1,0 +1,6 @@
+# Feed commits used by the verified official OpenWrt host build.
+packages=aca7007595f4a5d468938cf8e1fea889ba7b5067
+luci=a8c110bed82375b69eb3881b2e54e617520e8c7d
+routing=4b9891b9136259f93294a424507ed24c5e8c1cbd
+telephony=5d68d53c160a325ea9d03fce393e051573bcc736
+video=644a66261288b4a95dbc6e46fe805d33cb9f71d9

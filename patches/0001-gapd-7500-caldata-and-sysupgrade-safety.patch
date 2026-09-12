@@ -1,0 +1,52 @@
+From: GAPD-7500 local porting workspace
+Subject: qualcommax: gapd-7500: block unsafe sysupgrade
+
+The stock firmware uses rootfs/rootfs_1 together with BOOTCONFIG and
+BOOTCONFIG1, while the current target invokes generic nand_do_upgrade without a
+GAPD-specific slot policy. Refuse both image checking and platform upgrade for
+this device until that policy and an independent recovery path have been
+verified on the actual unit.
+
+The OpenWrt SMEM partition names remain lowercase. The actual RAM boot proved
+that changing them to uppercase prevents ath11k calibration extraction.
+
+--- a/target/linux/qualcommax/ipq60xx/base-files/lib/upgrade/platform.sh
++++ b/target/linux/qualcommax/ipq60xx/base-files/lib/upgrade/platform.sh
+@@ -26,10 +26,17 @@ remove_oem_ubi_volume() {
+ 		[ "$oem_ubivol" ] && ubirmvol "/dev/$ubidev" --name="$oem_volume_name"
+ 	fi
+ }
+ 
+ platform_check_image() {
++	case "$(board_name)" in
++	lg,gapd-7500)
++		echo "GAPD-7500 sysupgrade disabled: A/B and recovery semantics are unverified." >&2
++		return 1
++		;;
++	esac
++
+ 	return 0;
+ }
+ 
+ platform_do_upgrade() {
+ 	case "$(board_name)" in
+@@ -51,15 +58,18 @@ platform_do_upgrade() {
+ 	xiaomi,ax1800|\
+ 	zn,m2|\
+ 	glinet,gl-ax1800|\
+ 	glinet,gl-axt1800|\
+ 	netgear,wax214|\
+-	lg,gapd-7500|\
+ 	kt,ar06-012h|\
+ 	qihoo,360v6)
+ 		nand_do_upgrade "$1"
+ 		;;
++	lg,gapd-7500)
++		echo "GAPD-7500 upgrade refused: no verified A/B slot or recovery policy." >&2
++		return 1
++		;;
+ 	netgear,wax610|\
+ 	netgear,wax610y)
+ 		remove_oem_ubi_volume wifi_fw
+ 		remove_oem_ubi_volume ubi_rootfs
+ 		nand_do_upgrade "$1"

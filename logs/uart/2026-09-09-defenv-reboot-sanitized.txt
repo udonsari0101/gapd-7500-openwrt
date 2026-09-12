@@ -1,0 +1,39 @@
+GAPD-7500 approved U-Boot gate/reboot experiment
+Date: 2026-09-09 (Asia/Seoul)
+Target: owner-controlled actual router, stock 1.06.08
+
+Safety boundary
+- The user explicitly approved the one-time APPSBLENV gate and software reboot.
+- No OpenWrt image was transferred or executed.
+- No MTD/UBI, firmware, calibration, or boot-selection payload was written.
+- Raw UART and environment records remain outside Git.
+
+Observed sequence
+- The pre-change APPSBLENV backup matched its private manifest.
+- `defenv` was absent before each approved gate attempt.
+- The marker was written with the stock environment tool and read back as
+  `defenv=1`.
+- Plain reboot invocations did not reset the HTTP uptime. Each marker was
+  deleted and its absence verified before the next candidate was considered.
+- A read-only `ubus call system board` probe succeeded; the corresponding
+  procd reboot call then reset the stock HTTP uptime.
+- The actual reboot produced 6,493 raw UART bytes at 115200 8N1.
+- Sanitized landmarks were U-Boot 2016.01-svn420, `Boot act=0`, stock FIT hash
+  verification, and `Starting kernel ...`.
+- `boot access disabled` was absent, confirming the marker bypassed that gate.
+- This build emitted no `Hit any key` text and no `IPQ6018#` prompt. The
+  prompt-gated helper therefore transmitted zero bytes and stock boot continued.
+- The interval from the U-Boot version line to `Boot act=0` was approximately
+  0.85 seconds.
+
+Rollback and final state
+- After stock boot, `defenv=1` was read back, deleted using the stock
+  single-name deletion syntax, and verified absent with an independent oracle.
+- Stock 1.06.08 web service is reachable over the wired `/32` route.
+- Wi-Fi remains the only Internet default route.
+- No OpenWrt byte was transferred and no TFTP image listener was left running.
+
+Next gate
+- An earlier single SPACE triggered only after the exact U-Boot version
+  signature is a candidate for the silent input window.
+- That earlier transmit has not been attempted and requires separate approval.

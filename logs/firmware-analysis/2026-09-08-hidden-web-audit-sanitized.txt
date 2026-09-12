@@ -1,0 +1,88 @@
+GAPD-7500 hidden web/security audit - sanitized progress record
+Timestamp basis: 2026-09-08 through 2026-09-09 Asia/Seoul
+
+Scope
+- Owner-controlled router at the wired target address.
+- OpenWrt upload, RAM boot, and flash are deferred.
+- Later live requests used the confirmed factory-test injection only for
+  volatile /tmp scripts, read-only inventory/backup streams, and a temporary
+  source-restricted firewall rule that was immediately removed.
+- No credential, cookie, CAPTCHA answer, hidden token, MAC, or serial is stored
+  in this record.
+
+Verified live
+- Normal administrator login succeeded.
+- Hidden/superuser session transition succeeded.
+- _@upgrade_h.asp: HTTP 200, 3479 bytes.
+- _@ip_version_h.asp: HTTP 200, 1573 bytes.
+- _@ipv6_setting_h.asp: HTTP 200, 19555 bytes.
+- _@iot_info_h.asp: HTTP 200, 2412 bytes.
+- ap_hidden_radio.asp: HTTP 200, empty body for queryless GET.
+- All direct @h_000.asp through @h_016.asp requests returned HTTP 404.
+- Exact wired-interface scan: TCP 80 open; TCP 22 filtered; reviewed alternate
+  management ports closed.
+- Wi-Fi retained the default route and only the target /32 used Ethernet.
+
+Confirmed findings
+- Public EJ handler uses a substring allow check before generic expression
+  evaluation; a chained read-only EJ call was accepted before login.
+- Six-lowercase CAPTCHA answer can be recovered offline from its disclosed
+  digest-derived image name.
+- Stock hidden credential is deterministic from device identity; a derived
+  value was encrypted in memory and accepted by the hidden login handler.
+- Public EJ chaining read the first whitespace-delimited token from the known
+  non-secret /etc/openwrt_release file:
+  HTTP 200, 20 bytes, SHA-256
+  99b9980770bc6610d00426932580c72feaaa39efae457e528169bd3b551425b0.
+- All 17 embedded @h_NNN.asp bodies decrypted offline with valid PKCS#7
+  padding. Their AES key and zero IV are both recoverable from lgu_topaz.
+- Historical check_file_exist disassembly shows an unbounded token read into a
+  roughly 24-byte stack region. A current-device long-token pseudo-file request
+  caused an empty reply and about four seconds of TCP 80 unavailability. The
+  service recovered automatically; no router reboot was observed. This proves
+  a transient denial and supports a memory-corruption finding, not code
+  execution. The test must not be repeated.
+- The current /dv_factst.cgi self_url path performs unauthenticated shell
+  evaluation. Timing, root script execution from /tmp, and a complete read-only
+  inventory were confirmed on the actual 1.06.08 router. Ready-to-run payloads
+  are intentionally omitted from this sanitized record.
+
+Static/candidate findings
+- Multiple additional EJ functions reach command-launch APIs; their individual
+  input paths were not promoted beyond the confirmed factory-test injection.
+- DDNS renewal uses argv-style yexecl rather than a shell; the earlier shell
+  metacharacter hypothesis was rejected and must not be repeated.
+- TR-069/timed_acl supports a temporary TELTMP source-IP allow rule for SSH.
+- Factory dvtst.cgi has broad TELNMS add/remove commands, but the required
+  /tmp/mode_factory marker is absent on the current device; it was not invoked.
+- Earlier short outputs for /proc/mtd, dropbear, and firewall paths were only
+  first tokens, not full-file captures, and must not be treated as backups.
+
+OpenWrt readiness boundary
+- One pinned LibWrt initramfs was sent to RAM and booted with explicit approval;
+  it was not written to flash.
+- Hidden stock firmware form is FIMS/vendor-signature gated and is not a safe
+  OpenWrt upload endpoint.
+- Actual running version is 1.06.08; its live executable hashes match neither
+  local firmware image. The 1.07.16 UCI entry is update-candidate metadata.
+- Actual kernel/DT/MTD/UBI/mount/RAM/boot environment inventory is complete.
+- Twenty exact-size physical MTD files totaling 134217728 bytes are held
+  privately. mtd0 through mtd18 match router-side and PC SHA-256. Mounted USER
+  changed during capture and is marked non-consistent.
+- Bidirectional multi-block TFTP passed an actual-router round trip with an
+  identical SHA-256; all router /tmp transfer/result files were removed.
+- Stock Linux has no usable kexec path. Approved actual-router U-Boot gate tests
+  established that this build emits no autoboot prompt. A later test used the
+  stock `bootdelay_` marker and one SPACE after the exact console-ready UART
+  signature, reaching the actual U-Boot prompt.
+- Initramfs outer SHA-256, FIT config, internal CRC32/SHA-1, load/entry, and
+  non-overlapping RAM ranges passed host verification.
+- TCP 22 is closed again, no Ncat process remains, Wi-Fi owns the default route,
+  and target TCP 80 uses Ethernet.
+- The temporary marker was removed at U-Boot and one successful environment
+  save persisted its deletion before RAM-only network values were set. LAN2
+  brought PHY1 up at 1 Gbit/s and bounded host ping passed. One-shot TFTP then
+  transferred 18,129,564 bytes to `0x44000000`; host/server SHA-256 and U-Boot
+  whole-range CRC32 agree. FIT hashes and initramfs boot then passed. Wired
+  management works; Wi-Fi caldata failed because OpenWrt exposes lowercase
+  `0:art` while the local patch requested uppercase. No flash write occurred.

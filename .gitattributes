@@ -1,0 +1,7 @@
+/.gitattributes text eol=lf
+/patches/*.patch text eol=lf whitespace=-space-before-tab,-trailing-space,-blank-at-eof
+/patches/official-openwrt/*.patch text eol=lf whitespace=-space-before-tab,-trailing-space,-blank-at-eof
+/scripts/build/*.sh text eol=lf
+/scripts/build/*.py text eol=lf
+/scripts/device/*.sh text eol=lf
+/configs/openwrt-* text eol=lf

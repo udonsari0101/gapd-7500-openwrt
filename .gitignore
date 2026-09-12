@@ -1,0 +1,15 @@
+.work/
+__pycache__/
+artifacts/
+logs/network/runtime/
+*.pcap
+*.pcapng
+*.bin
+*.ubi
+*.itb
+*.img
+*.squashfs
+*.tar
+*.zip
+*.7z
+*.log.raw
