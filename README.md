@@ -16,7 +16,7 @@ Davolink GAPD-7500, 순정 펌웨어 1.06.08입니다. 보드 리비전이나 �
 | OpenWrt 부팅 | NAND에서 자동 부팅, 소프트웨어 재부팅 2회 확인 |
 | 루트 파일시스템 | SquashFS + UBIFS overlay 정상 |
 | LAN1 | 1 Gbit/s 링크, LuCI/SSH 통신 정상 |
-| 관리 페이지 | `http://192.168.219.1/` HTTP 200 |
+| 관리 페이지 | 시험 기기에서 LAN을 `.219.1`로 바꾼 뒤 `http://192.168.219.1/` HTTP 200 |
 | SSH | 공개키 인증과 비밀번호 인증 모두 확인 |
 | 방화벽 | firewall4/nftables 규칙 로드 확인 |
 | 2.4/5 GHz | ath11k 로드, 두 PHY와 AP 인터페이스 생성 확인 |
@@ -32,6 +32,10 @@ Davolink GAPD-7500, 순정 펌웨어 1.06.08입니다. 보드 리비전이나 �
 확인한 LAN, LuCI, SSH, 무선 PHY 동작에는 문제가 없었지만 해결된 경고는
 아닙니다. 전체 시험 기록은 [기능 시험표](docs/14-custom-build-test-report.md)에
 정리했습니다.
+
+새 initramfs/factory의 첫 LAN 주소는 OpenWrt 기본값인 `192.168.1.1`입니다.
+`192.168.219.1`은 시험 기기에서 설치 뒤 따로 저장한 주소입니다.
+`192.168.0.1`은 이 빌드의 기본 주소가 아닙니다.
 
 ## 어떤 파일을 받으면 되나
 
@@ -82,7 +86,8 @@ UART는 GND, TX, RX 세 선만 연결합니다. 어댑터 TX는 공유기 RX로,
 3. UART에서 U-Boot 복구 진입이 되는지 먼저 확인합니다.
 4. initramfs를 `0x44000000`에 TFTP로 올리고
    `bootm 0x44000000#config@cp03-c1`로 RAM 부팅합니다.
-5. RAM 부팅에서 LAN, SSH, ART/caldata, 두 rootfs 슬롯을 다시 확인합니다.
+5. PC를 `192.168.1.100/24`로 두고 기본 주소 `192.168.1.1`에서 LAN, SSH,
+   ART/caldata, 두 rootfs 슬롯을 다시 확인합니다.
 6. factory UBI는 현재 사용하지 않는 슬롯에만 씁니다.
 7. 새 슬롯을 한 번 수동 부팅해 확인한 다음에만 BOOTCONFIG를 전환합니다.
 
@@ -97,10 +102,12 @@ UART는 GND, TX, RX 세 선만 연결합니다. 어댑터 TX는 공유기 RX로,
 
 ## Windows에서 주소가 겹칠 때
 
-LG U+ 공유기와 GAPD-7500이 둘 다 `192.168.219.1`이면 Windows가 엉뚱한 쪽으로
-접속하기 쉽습니다. `scripts/windows`의 watcher는 인터넷 기본 경로를 Wi-Fi에
-남겨 두고, GAPD가 실제로 연결된 동안에만 `192.168.219.1/32`를 유선으로 보냅니다.
-케이블이 빠지면 그 경로부터 지웁니다.
+설치 뒤 GAPD의 LAN을 직접 `192.168.219.1`로 바꿨고 기존 Wi-Fi 공유기도 같은
+주소를 쓴다면 Windows가 엉뚱한 쪽으로 접속하기 쉽습니다. 그 경우에만
+`scripts/windows`의 watcher를 사용합니다. 인터넷 기본 경로는 Wi-Fi에 남겨
+두고, GAPD가 실제로 연결된 동안에만 `192.168.219.1/32`를 유선으로 보냅니다.
+케이블이 빠지면 그 경로부터 지웁니다. 첫 부팅 기본값 `192.168.1.1`을 그대로
+쓸 때는 이 중복 주소용 watcher가 필요하지 않습니다.
 
 ```powershell
 .\scripts\windows\enable-gapd-network-admin.bat
